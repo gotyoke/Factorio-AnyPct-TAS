@@ -1,6 +1,6 @@
 # Factorio-AnyPct-TAS
 
-World's first Factorio any% tool-assisted speed-run (TAS). Inspired by AntiElitz, Rain9441, TAS mods by YourNameHere/Bilka and the steelaxe% TAS run by Xpert85, this vanilla single-player speed run goes from nothing to satellite launch in 2:05:31. This beats the current world record set by AntiElitz by over 50 minutes! Well he's only human ;)
+World's first Factorio any% tool-assisted speed-run (TAS). Inspired by AntiElitz, Rain9441, TAS mods by YourNameHere/Bilka, and the steelaxe% TAS run by Xpert85, this vanilla single-player speed run goes from nothing to satellite launch in 2:05:31. This beats the current world record set by AntiElitz by over 50 minutes! Well he's only human ;)
 
 This mod is only intended to work in Factorio 0.16.51. If the mod API changes, or map generation changes, or game mechanics or recipes change, this run will be useless. I'm sure that will happen soon enough.
 
@@ -33,3 +33,7 @@ All alone here, however I did use many ideas from the Factorio-TAS-Playback mod 
 
 [https://github.com/yournamehere/factorio-tas-playback](https://github.com/yournamehere/factorio-tas-playback)
 [https://github.com/Bilka2/factorio-tas-playback](https://github.com/Bilka2/factorio-tas-playback)
+
+Inspired by world-record speed runs by AntiElitz and Rain9441, whose runs and Twitch info can be found here: [https://www.speedrun.com/Factorio](https://www.speedrun.com/Factorio)
+
+Also inspired by world-record TAS steelaxe% speed run by Xpert85, which used the mods above: [https://www.youtube.com/watch?v=o8mHgZHcB6E](https://www.youtube.com/watch?v=o8mHgZHcB6E)
