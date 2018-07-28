@@ -10,6 +10,8 @@ Copy the AnyPctTAS_0.0.1 folder to your 'mods' directory. For most people this w
 
 ## Running
 
+In the "Interface" window, turn off "Technology window opens when research is completed". Otherwise the run will get interrupted repeatedly (thanks KizbySpark for mentioning this).
+
 Run the Scenario "Any% TAS/AnyPctTAS"
 
 ## How do I speed this up?
