@@ -6,7 +6,7 @@ This mod is only intended to work in Factorio 0.16.51. If the mod API changes, o
 
 ## Installation
 
-Copy the AnyPct-TAS folder to your 'mods' directory. For most people this will be inside the directory specified here: [https://wiki.factorio.com/Application_directory#User_data_directory](https://wiki.factorio.com/Application_directory#User_data_directory)
+Copy the AnyPctTAS_0.0.1 folder to your 'mods' directory. For most people this will be inside the directory specified here: [https://wiki.factorio.com/Application_directory#User_data_directory](https://wiki.factorio.com/Application_directory#User_data_directory)
 
 ## Running
 
