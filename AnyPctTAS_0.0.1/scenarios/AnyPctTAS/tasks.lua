@@ -1,6 +1,6 @@
 local task = {}
 
-task[1] = {"speed", 10}
+task[1] = {"speed", 1}
 task[2] = {"walk", {45.0,14.0}}
 task[3] = {"craft", 1, "iron-axe"}
 task[4] = {"craft", 2, "iron-gear-wheel"}
