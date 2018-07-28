@@ -1,0 +1,11 @@
+{
+  "name": "AnyPctTAS",
+  "version": "0.0.1",
+  "factorio_version": "0.16",
+  "title": "Any% TAS",
+  "author": "Gotyoke",
+  "contact": "None",
+  "homepage": "https://github.com/gotyoke",
+  "description": "Launches a rocket in record time.",
+  "dependencies": []
+}
