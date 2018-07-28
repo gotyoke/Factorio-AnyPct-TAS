@@ -31,5 +31,5 @@ Map exchange string:
 
 All alone here, however I did use many ideas from the Factorio-TAS-Playback mod by YourNameHere & Bilka:
 
-https://github.com/yournamehere/factorio-tas-playback
-https://github.com/Bilka2/factorio-tas-playback
+[https://github.com/yournamehere/factorio-tas-playback](https://github.com/yournamehere/factorio-tas-playback)
+[https://github.com/Bilka2/factorio-tas-playback](https://github.com/Bilka2/factorio-tas-playback)
