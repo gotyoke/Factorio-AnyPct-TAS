@@ -16,6 +16,8 @@ Last, start a new Freeplay game using the following map string:
 
 **When you are done, you will want to disable this mod, otherwise it will try to operate in all of your other maps.**
 
+This run would be better as a scenario. Unfortunately, due to the sensitive nature of the run, when I tried converting it to a scenario afterward, the run broke. A lesson for next time.
+
 # Inspiration
 
 Thanks go to Bilka/YourNameHere for the initial design for the TAS mod. The steelaxe% TAS run by Xpert85 got me thinking this could be done for a full rocket launch, if I were persistent enough. AntiElitz got me interested in Factorio speedrunning in the first place. He and Rain9441, Nefrums, and happy_dude have all been active in the Any% speedrun category, all competing for the coveted 1st place on speedrun.com/factorio. You might recognize some components of their base layouts in this speedrun.
@@ -37,6 +39,10 @@ While the tasks themselves are specific to this map seed, the LUA script to exec
 ## Why does it require version 0.18.17?
 
 The developers are amazing and continually update Factorio to address bugs, add features, and generally make the game better. The TAS run is so sensitive to changes that even the simplest of them break the run. For example, in 0.18.18 the devs fixed bug #82959 (https://forums.factorio.com/82959) when I was about 60% through the run. Their modification slightly changed the algorithm used to calculate the amount of stone and coal obtained from mining large rocks. That minor change broke the run because even one less piece of coal in the early game meant a burner miner drill ran for 26 fewer seconds, which resulted in 6 fewer iron plates, which I needed for an inserter. This caused a cascade effect for the rest of the run. So rather than fixing the entire run, I decided to stick with version 0.18.17.
+
+## Wouldn't it be better if this was a Scenario?
+
+Yes, yes it would. Then the mod wouldn't affect your other maps. I didn't have the process figured out until after I was done. Unfortunately, likely due to the sensitivities described above, converting this to a scenario broke the run.
 
 ## How long did it take to make this mod?
 
