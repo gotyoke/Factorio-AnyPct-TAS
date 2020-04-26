@@ -12,7 +12,7 @@ Last, start a new Freeplay game using the following map string:
 
 ```>>>eNp1VM9r1EAUnnG7Nq0gRfagoHUPBUVIiFsFWcrOKIqUon+D2eysBLKZdZKAVdA99NjixYte3KsKvXnwtiBIBYWiJ28VLx5UKopehHXeTGY3jdsH7+Wb9+N7701CEDqCDiItVCqxpnzuhQgNqNFZn3e7TNhcsLx7xhdpi9k82JvMItZZtZteLJN7RBP3iBUIHhUZynHCI0gbexLBWAyjPH92pgGFh1LhRUHagVrtQ0g98al+i/TW5hHo8D6qDoegEu3IFFCEe2oELH2ZTB31eZQIHtoxS5Iguln30tv1ZuDFM7bruOddKacnpbQFu5WyyF+td9IwCbphwIS16LhKThQrOjyIk1QwxWy5juJ17X3TJrK7Tk3Vlf0waLcRql6UeknthfHdyubVT3ceEqz3cmgGdjPPoGk8ywZcp/uGFgw4l+NZVPIzB3TTRLbIsiw6Bjq4BkGMN7696P95vd3Af5/+eH+teYPgs1cq33drmw0ZnIYVDozM40cgL80qyHDukCz0keB3b0G+ElyGigoYekGawUoJ4bnDEvXXpakeR2a0hqGpUNxW8tts8tmAD6S4h7yIJSCfB7MFRjUcTYY1pA8opidN9Ng4RdbXUH6G1njDN6btq1z/wiD/v4j8HgXPAp3wGmahYWtkvpRG08j73J42J/qE4hIAyPolffqU/QQUlX7OURPQnwW6t3F55R8eq+Hl<<<```
 
-*When you are done, you will want to disable this mod, otherwise it will try to operate in all of your other maps.*
+**When you are done, you will want to disable this mod, otherwise it will try to operate in all of your other maps.**
 
 # Inspiration
 
