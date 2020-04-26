@@ -2,6 +2,8 @@
 
 This project is a Tool-Assisted Speedrun (TAS) mod for the Factorio PC game by Wube Software LTD. The included scripts perform a complete Any% speedrun (single player launches a rocket using a generated map and vanilla game rules, without other mods). Version 0.2.2 does this for Factorio version 0.18 in 1h 21m 20s for a specific map seed. Version 0.0.1 requires Factorio version 0.16.
 
+I uploaded a youtube video of this speedrun here: https://youtu.be/qYIplmAQcWU
+
 # Running this mod
 
 You must be running Factorio version 0.18.17. This is a hard requirement, brought about by API changes and bug fixes. You can downgrade to version 0.18.17 through Steam (see the BETAS tab in Factorio - Properties).
