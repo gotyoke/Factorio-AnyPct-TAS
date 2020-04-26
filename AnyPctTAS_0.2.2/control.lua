@@ -5,18 +5,27 @@ local state = 1
 local idle = 0
 local pick = 0
 local dropping = 0
-local dupevent = 0
+--Uncomment this for the better mining handling fix
+--local mining_done = 0
+
+-- Set this to display debugging messages
 local dbg = 0
-local mining_done = 0
 
-local finished = 0
-
+-- Display debugging messages, if dbg is on
 local function debug(p, msg)
 	if dbg > 0 then
 		p.print(msg)
 	end
 end
 
+-- Create an entity on the surface. In most cases this is building a structure/item/entity
+-- It checks to see if a fast-replace works first.
+-- Returns false on failure to prevent advancing state until within reach and/or item is in the inventory
+-- The direction doesn't always work as you'd expect for fluids.
+--   asms       - once the recipe gets set, the fluid input will always be north, requiring rotation
+--   chems      - direction indicates the side where the fluids are input
+--   refineries - direction indicates the side where the fluids output
+--   pumps      - direction indicates the side where the fluid is input
 local function build(p, position, item, direction)
 	-- Check if we have the item
 	if p.get_item_count(item) == 0 then
@@ -24,7 +33,7 @@ local function build(p, position, item, direction)
 		return false
 	end
 
-	-- Grenade special stuff
+	-- Grenade special stuff (untested in 0.18)
 	if item == "grenade" then
 		p.update_selected_entity(position)
 		if not p.selected then
@@ -35,7 +44,7 @@ local function build(p, position, item, direction)
 		return true
 	end
 
-	-- Brick special stuff Doesn't work
+	--Failed attempt to lay bricks. Work-in-progress
 	--if item == "stone-brick" then
 	--	p.surface.set_tiles({name = item, position = position})
 		--canplace = p.can_place_entity{name = "tile", inner_name = item, position = position, force="player"}
@@ -60,20 +69,19 @@ local function build(p, position, item, direction)
 			if asm then
 				--When fast replace succeeds, it triggers the on_player_mined_entity event for each item replaced.
 				--My handler for that event advances state (otherwise the player would "mine" forever). After the build
-				--completes, state on_tick advances state doTask() completes through normal state advancement.
+				--completes, on_tick advances state after doTask() completes through, which is normal state advancement.
 				--Therefore state gets advanced twice in most cases. So I decrement state here so the net value of state
 				--is incremented by only one.
 				--This issue becomes a serious bug with the splitter, since fast replacing with that item is able to trigger
 				--two on_player_mined_entity events, thus advancing state yet another time. For now I handle that by making
-				--sure splitters replace at most 1 belt.
-				--From swni on Reddit: "Presumably the reason that "state" gets advanced when using fast replace is because 
-				--              on_player_mined_item gets called for picking up the replaced building."
+				--sure splitters replace at most 1 belt...I mine one of the belts first in my task list.
+				
 				--I have a better answer for this, but it breaks my 0.18.17 run:
 				--Using the mining_done variable means I don't increment state in the on_player_mined_item event.
 				--It's a better way, which I would want to use in the future. I wonder if it is dependent upon the
 				--order events are processed, possibly a race condition (on_tick vs on_player_mined_entity)
 				--Hey also, can_fast_replace does not do distance checking, so it could be
-				--cheaty here if I were dishonest. (Is this still true?)
+				--cheaty here if I were dishonest. (Is this still true in 0.18?)
 				state = state - 1
 			end
 		else
@@ -89,12 +97,16 @@ local function build(p, position, item, direction)
 	return true
 end
 
+-- Handcraft one or more of a recipe
 local function craft(p, count, recipe)
 	amt = p.begin_crafting{recipe = recipe, count = count}
 	--XETX Do I want to return false if amt = 0?
 	return true
 end
 
+-- Adjust the filter of a filter inserter. It might work for other filter things too, though
+-- probably not splitters
+-- Returns false on failure to prevent advancing state until within reach
 local function filter(p, position, filter, slot)
 	p.update_selected_entity(position)
 	if not p.selected then
@@ -110,6 +122,8 @@ local function filter(p, position, filter, slot)
 	return true
 end
 
+-- Manually launch the rocket
+-- Returns false on failure to prevent advancing state until the launch succeeds
 local function launch(p, position)
 	p.update_selected_entity(position)
 	if not p.selected then
@@ -124,6 +138,8 @@ local function launch(p, position)
 	return p.selected.launch_rocket()
 end
 
+-- Set the inventory slot space on chests (and probably other items, which are untested)
+-- Returns false on failure to prevent advancing state until within reach
 local function limit(p, position, limit, slot)
 	p.update_selected_entity(position)
 	if not p.selected then
@@ -149,11 +165,13 @@ local function limit(p, position, limit, slot)
 	--	return true
 	--end
 
-	-- Setting setbar to 1 completely limits all slots, so it's off by one
+	-- Setting set_bar to 1 completely limits all slots, so it's off by one
 	otherinv.set_bar(limit+1)
 	return true
 end
 
+-- Set the input/output/filter settings for a splitter
+-- Returns false on failure to prevent advancing state until within reach
 local function priority(p, position, input, output, filter)
 	p.update_selected_entity(position)
 	if not p.selected then
@@ -175,6 +193,9 @@ local function priority(p, position, input, output, filter)
 	return true
 end
 
+-- Place an item from the character's inventory into an entity's inventory
+-- Returns false on failure to prevent advancing state until within reach
+-- It is possible to put 0 items if none are in the character's inventory
 local function put(p, position, item, amount, slot)
 	p.update_selected_entity(position)
 
@@ -212,6 +233,11 @@ local function put(p, position, item, amount, slot)
 	return true
 end
 
+-- Set the recipe of an assembling machine, chemical plant, or oil refinery (anything I'm missing?)
+-- Returns false on failure to prevent advancing state until within reach
+-- Items still in the machine not used in the new recipe will be placed in the character's inventory
+-- NOTE: There is a bug here. It is possible to set a recipe that is not yet available through
+-- completed research. For now, go on the honor system.
 local function recipe(p, position, recipe)
 	p.update_selected_entity(position)
 	if not p.selected then
@@ -235,6 +261,8 @@ local function recipe(p, position, recipe)
 	return true
 end
 
+-- Rotate an entity one quarter turn
+-- Returns false on failure to prevent advancing state until within reach
 local function rotate(p, position, direction)
 	local opts = {reverse = false}
 	p.update_selected_entity(position)
@@ -251,17 +279,24 @@ local function rotate(p, position, direction)
 		opts = {reverse = true}
 	end
 	p.selected.rotate(opts)
+	-- Not sure this is a good idea. Rotating a belt 180 requires two rotations. But
+	-- rotating an underground belt 180 requires only one rotation. So maybe allowing 180
+	-- will cause some headaches.
 	if direction == "180" then
 		p.selected.rotate(opts)
 	end
 	return true
 end
 
+-- Set the gameplay speed. 1 is standard speed
 local function speed(speed)
 	game.speed = speed
 	return true
 end
 
+-- Take an item from the entity's inventory into the character's inventory
+-- Returns false on failure to prevent advancing state until within reach
+-- It is possible to take 0 items if none are in the entity's inventory
 local function take(p, position, item, amount, slot)
 	p.update_selected_entity(position)
 
@@ -305,12 +340,17 @@ local function take(p, position, item, amount, slot)
 	return true
 end
 
+-- Set the current research
 local function tech(p, research)
 	p.force.research_queue_enabled = true
 	p.force.add_research(research)
 	return true
 end
 
+-- Bulk move items from the character's inventory into the entity's inventory
+-- Returns false on failure to prevent advancing state until within reach
+-- NOTE: This should only be used to transfer items into an empty entity because it
+-- simply overwrites the contents of the slots of the entity. For now, go on the honor system.
 local function transfer(p, position, numslots, slot)
 	p.update_selected_entity(position)
 	if not p.selected then
@@ -340,11 +380,14 @@ local function transfer(p, position, numslots, slot)
 	return true
 end
 
+-- This was used to close dialogs in the tutorial automatically. I'm guessing more
+-- work needs to be done here.
 local function clsobj(p)
 	p.gui.left.children[1].visible = false
 	return true
 end
 
+-- Drop items on the ground (like pressing the 'z' key)
 local function drop(p, position, item)
 	local canplace = p.can_place_entity{name = item, position = position}
 	if canplace then
@@ -361,6 +404,7 @@ local function drop(p, position, item)
 	return true
 end
 
+-- Make a quick blueprint of an area then paste that blueprint in another location
 local function blueprint(p, topleft, bottomright, position, direction)
 	p.cursor_stack.set_stack('blueprint')
 	p.cursor_stack.create_blueprint{area = {topleft, bottomright},
@@ -370,6 +414,7 @@ local function blueprint(p, topleft, bottomright, position, direction)
 	return true
 end
 
+-- Walks the character in the direction of a coordinate
 local function walk(delta_x, delta_y)
 	if delta_x > 0.2 then
 		-- Easterly
@@ -401,6 +446,9 @@ local function walk(delta_x, delta_y)
 	end
 end
 
+-- Routing function to perform one of the many available tasks
+-- Returning true indicates the calling function should advance the state. False
+-- means do not advance state.
 local function doTask(p, task)
 	if task[1] == "build" then
 		return build(p, task[2], task[3], task[4])
@@ -443,21 +491,28 @@ local function doTask(p, task)
 		return clsobj(p)
 	elseif task[1] == "drop" then
 		dropping = task[2]
+	elseif task[1] == "nop" then
+		return true
 	end
 end
 
-local function printGui(p, ge, depth)
-	for k, v in pairs(ge.children) do
-		debug(p, string.format("%s%s %s", depth, k, v.type))
-		printGui(p, v, string.format("%s  ", depth))
-	end
-end
+-- A debugging function to help me figure out the structure of the GUI table
+-- local function printGui(p, ge, depth)
+--	for k, v in pairs(ge.children) do
+--		debug(p, string.format("%s%s %s", depth, k, v.type))
+--		printGui(p, v, string.format("%s  ", depth))
+--	end
+-- end
 
+-- Skips the freeplay intro
 script.on_event(defines.events.on_game_created_from_scenario, function()
-	-- Skips the freeplay intro
+
 	remote.call("freeplay", "set_skip_intro", true)
+	speed(1)
+
 end)
 
+-- Main per-tick event handler
 script.on_event(defines.events.on_tick, function(event)
 	local p = game.players[1]
 	local pos = p.position
@@ -482,8 +537,7 @@ script.on_event(defines.events.on_tick, function(event)
 		--end
 		--state = state
 	end
-	dupevent = 0
-
+	
 	local walking = walk(destination.x - pos.x, destination.y - pos.y)
 		
 	if walking.walking == false then
@@ -502,10 +556,10 @@ script.on_event(defines.events.on_tick, function(event)
 			walking = walk(destination.x - pos.x, destination.y - pos.y)
 			state = state + 1
 		elseif task[state][1] == "mine" then
-			--XETX Replace this
+			--------------Replace this
 			p.update_selected_entity(task[state][2])
 			p.mining_state = {mining = true, position = task[state][2]}
-			--XETX With this
+			--------------With this
 			--if mining_done == 1 then
 			--	mining_done = 0
 			--	state = state + 1
@@ -515,7 +569,7 @@ script.on_event(defines.events.on_tick, function(event)
 			--	p.mining_state = {mining = true, position = task[state][2]}
 			--	mining_done = 0
 			--end
-			--XETX For better mining handling (fixes fast-replace weirdness)
+			--------------For better mining handling (fixes fast-replace weirdness)
 		elseif doTask(p, task[state]) then
 			-- Do task while standing still
 			state = state + 1
@@ -536,27 +590,15 @@ script.on_event(defines.events.on_tick, function(event)
 end)
 
 script.on_event(defines.events.on_player_mined_entity, function(event)
-	--XETX Replace this
+	--------------Replace this
 	state = state + 1
-	--XETX With this
+	--------------With this
 	--if task[state][1] == "mine" then
 	--	mining_done = 1
 	--end
-	--XETX For better mining handling (fixes fast-replace weirdness)
+	--------------For better mining handling (fixes fast-replace weirdness)
 	
 	--local p = game.players[1]
 	--local d = event.buffer.get_contents()
 	--debug(p, string.format("%d,%d,%d", event.tick,d["coal"], d["stone"]))
 end)
-
---script.on_event(defines.events.on_player_mined_item, function(event)
---	if dupevent ~= 1 and task[state] ~= nil and task[state][1] ~= "break" then
---		state = state + 1
---		-- When mining/picking up something with multiple items, this event
---		-- is triggered for each item. But we only want to update state once
---		-- so we use dupevent to regulate that.
---		dupevent = 1
---	end
---	local p = game.players[1]
---	debug(p, string.format("mined_item on %d", event.tick))
---end)
