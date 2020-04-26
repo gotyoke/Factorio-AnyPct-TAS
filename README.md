@@ -56,7 +56,7 @@ No, the base layout grew fairly organically. I utilized some existing designs th
 
 ## How close is this to the theoretical fastest time?
 
-I don't know, but I think it is unlikely that a single-player run on an ideal map would be able to break the 1 hour barrier. Going faster requires scaling up resources and production in every area. That requires additional materials and space. The extra materials to account for this additional space (namely belts) and the time needed to construct them grow more than linearly, so there are diminishing returns, especially later in the run. That said, the designs in this run are very much human-oriented...since I am merely a human. Layouts that are better for computers are possible with a TAS, which may make a run closer to the 1 hour barrier possible.
+I don't know, but I think it is unlikely that a single-player run on an ideal map would be able to break the 1 hour barrier. Going faster requires scaling up resources and production in every area. That requires additional materials and space. The extra materials to account for this additional space (namely belts) and the time needed to construct them grow more than linearly, so there are diminishing returns, especially later in the run. That said, with a few exceptions, the designs in this run are very much human-oriented...since I am merely a human. Layouts that are better for computers are possible with a TAS, which may make a run closer to the 1 hour barrier possible.
 
 ## How would you improve this run?
 
