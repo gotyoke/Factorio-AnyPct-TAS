@@ -8,7 +8,7 @@ I uploaded a youtube video of this speedrun here: https://youtu.be/qYIplmAQcWU
 
 You must be running Factorio version 0.18.17. This is a hard requirement, brought about by API changes and bug fixes. You can downgrade to version 0.18.17 through Steam (see the BETAS tab in Factorio - Properties).
 
-Next, enable this mod.
+Next, enable this mod. Get it from here: https://mods.factorio.com/mod/AnyPctTAS
 
 Last, start a new Freeplay game using the following map string:
 
