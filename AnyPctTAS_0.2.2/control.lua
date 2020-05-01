@@ -8,12 +8,9 @@ local dropping = 0
 --Uncomment this for the better mining handling fix
 --local mining_done = 0
 
--- Set this to display debugging messages
-local dbg = 0
-
 -- Display debugging messages, if dbg is on
 local function debug(p, msg)
-	if dbg > 0 then
+	if settings.global["tas-console-debug"].value then
 		p.print(msg)
 	end
 end
@@ -506,24 +503,124 @@ end
 
 -- Skips the freeplay intro
 script.on_event(defines.events.on_game_created_from_scenario, function()
+		remote.call("freeplay", "set_skip_intro", true)
+		-- start at max speed if we want to skip to a certain task
+		if settings.global["tas-target-task"].value > 0 then
+			speed(settings.global["tas-max-speed"].value)
+		else 
+			speed(settings.global["tas-default-speed"].value)
+		end
+	end
+)
 
-	remote.call("freeplay", "set_skip_intro", true)
-	speed(1)
+-- create gui on top left for debug instead of printing to console
+script.on_event(
+    defines.events.on_player_created,
+    function(event)
+        local player = game.players[event.player_index]
+		local pos = player.position
 
-end)
+		-- this and button style is copied from redmew
+        if not player or not player.valid then
+            return
+        end
+		
+		if settings.global["tas-gui-debug"].value ~= "disabled" then
+			local t = 
+				player.gui.top.add {
+				type = 'label',
+				name = "tas_debug_gui_time",
+				caption = ""
+			}
+			local p = 
+				player.gui.top.add {
+				type = 'label',
+				name = "tas_debug_gui_pos",
+				caption = ""
+			}
+			local s = 
+				player.gui.top.add {
+				type = 'label',
+				name = "tas_debug_gui_state",
+				caption = ""
+			}
+
+			local b =
+				player.gui.top.add {
+				type = 'button',
+				name = "tas_debug_gui_toggle",
+				caption = '>',
+			}
+			local style = b.style
+			style.width = 18
+			style.height = 18
+			style.left_padding = 0
+			style.top_padding = 0
+			style.right_padding = 0
+			style.bottom_padding = 0
+			style.font = 'default-small-bold'
+			-- start with gui open
+			if settings.global["tas-gui-debug"].value == "open" then
+				t.caption = "0"
+				p.caption = string.format("(%.2f, %.2f)", 0.0, 0.0)
+				s.caption = string.format("%d %s", 1, task[1][1])
+				b.caption = "<"
+			end
+		end
+    end
+)
+
+script.on_event(
+	defines.events.on_gui_click,
+	function(event)
+		if event.element.name == "tas_debug_gui_toggle" then
+			local button = event.element
+			local player = game.players[event.player_index]
+			local pos = player.position
+			local top = player.gui.top
+
+			if button.caption == '<' then
+				-- closes debug info by displaying nothing
+				top.children[2].caption = ""
+				top.children[3].caption = ""
+				top.children[4].caption = ""
+				button.caption = '>'
+			else
+				top.children[2].caption = event.tick
+				top.children[3].caption = string.format("(%.2f, %.2f)", pos.x, pos.y)
+				top.children[4].caption = string.format("%d %s", state, task[state][1])
+				button.caption = '<'
+			end
+		end
+    end
+)
 
 -- Main per-tick event handler
 script.on_event(defines.events.on_tick, function(event)
 	local p = game.players[1]
 	local pos = p.position
-	local g = p.gui
+	local top = p.gui.top
+
+	-- update debug gui every tick
+	if settings.global["tas-gui-debug"].value ~= "disabled" then
+		if top.children[5].caption == "<" then
+			top.children[2].caption = event.tick
+			top.children[3].caption = string.format("(%.2f, %.2f)", pos.x, pos.y)
+			top.children[4].caption = string.format("%d %s", state, task[state][1])
+		end
+	end
+
+	-- set gamespeed to default, stopping fastfowarding, if we reach target state
+	if state == settings.global["tas-target-task"].value then
+		game.speed = settings.global["tas-default-speed"].value
+	end
 
 	if task[state] == nil or task[state][1] == "break" then
 		debug(p, string.format("(%.2f, %.2f) Complete after %f seconds (%d ticks)", pos.x, pos.y, p.online_time / 60, p.online_time))		
-		dbg = 0
 		return
 	else
-		debug(p, string.format("(%.2f, %.2f, %d) %d %s", pos.x, pos.y, event.tick, state, task[state][1]))
+		-- obsolete, now we use gui instead
+		--debug(p, string.format("(%.2f, %.2f, %d) %d %s", pos.x, pos.y, event.tick, state, task[state][1]))
 		--if state == 1 then			
 		--	printGui(p, g, "")
 			-- In the introduction I need to click the initial "Continue" button to progress.
