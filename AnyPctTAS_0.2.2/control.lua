@@ -626,7 +626,11 @@ script.on_event(defines.events.on_tick, function(event)
 	if settings.global["tas-gui-debug"].value ~= "disabled" then
 		top.children[2].caption = event.tick
 		top.children[3].caption = string.format("(%.2f, %.2f)", pos.x, pos.y)
+		if task[state] ~= nil then
 		top.children[4].caption = string.format("%d %s", state, task[state][1])
+		else
+			top.children[4].caption = ""
+		end
 	end
 
 	-- set gamespeed to default, stopping fastfowarding, if we reach target state
