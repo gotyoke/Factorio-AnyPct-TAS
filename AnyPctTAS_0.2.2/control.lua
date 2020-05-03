@@ -546,6 +546,21 @@ script.on_event(
 				caption = string.format("%d %s", 1, task[1][1])
 			}
 
+			local pause_button = 
+				player.gui.top.add {
+				type = 'button',
+				name = "tas_debug_gui_pause",
+				caption = 'P',
+			}
+			-- TODO: remove redundancy / verbosity?
+			local style = pause_button.style
+			style.width = 18
+			style.height = 18
+			style.left_padding = 0
+			style.top_padding = 0
+			style.right_padding = 0
+			style.bottom_padding = 0
+			style.font = 'default-small-bold'
 			local b =
 				player.gui.top.add {
 				type = 'button',
@@ -565,6 +580,7 @@ script.on_event(
 				t.visible = false
 				p.visible = false
 				s.visible = false
+				pause_button.visible = false
 				b.caption = ">"
 			end
 		end
@@ -594,6 +610,8 @@ script.on_event(
 				end
 				button.caption = '<'
 			end
+		elseif event.element.name == "tas_debug_gui_pause" then
+			game.tick_paused = not game.tick_paused
 		end
     end
 )
