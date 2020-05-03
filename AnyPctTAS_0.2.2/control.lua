@@ -8,12 +8,9 @@ local dropping = 0
 --Uncomment this for the better mining handling fix
 --local mining_done = 0
 
--- Set this to display debugging messages
-local dbg = 0
-
 -- Display debugging messages, if dbg is on
 local function debug(p, msg)
-	if dbg > 0 then
+	if settings.global["tas-console-debug"].value then
 		p.print(msg)
 	end
 end
@@ -506,24 +503,192 @@ end
 
 -- Skips the freeplay intro
 script.on_event(defines.events.on_game_created_from_scenario, function()
+		remote.call("freeplay", "set_skip_intro", true)
+		-- start at max speed if we want to skip to a certain task
+		if settings.global["tas-target-task"].value > 0 then
+			speed(settings.global["tas-max-speed"].value)
+		else 
+			speed(settings.global["tas-default-speed"].value)
+		end
+	end
+)
 
-	remote.call("freeplay", "set_skip_intro", true)
-	speed(1)
+-- create gui on top left for debug instead of printing to console
+script.on_event(
+    defines.events.on_player_created,
+    function(event)
+        local player = game.players[event.player_index]
+		local pos = player.position
 
-end)
+		-- this guard and button style is copied from redmew
+        if not player or not player.valid then
+            return
+        end
+		
+		-- create tas debug gui if it is not disabled
+		if settings.global["tas-gui-debug"].value ~= "disabled" then
+			local t = 
+				player.gui.top.add {
+				type = 'label',
+				name = "tas_debug_gui_time",
+				caption = "0"
+			}
+			local p = 
+				player.gui.top.add {
+				type = 'label',
+				name = "tas_debug_gui_pos",
+				caption = string.format("(%.2f, %.2f)", 0.0, 0.0)
+			}
+			local s = 
+				player.gui.top.add {
+				type = 'label',
+				name = "tas_debug_gui_state",
+				caption = string.format("%d %s", 1, task[1][1])
+			}
+
+			local pause_button = 
+				player.gui.top.add {
+				type = 'button',
+				name = "tas_debug_gui_pause",
+				caption = 'P',
+			}
+			-- TODO: remove redundancy / verbosity?
+			local style = pause_button.style
+			style.width = 18
+			style.height = 18
+			style.left_padding = 0
+			style.top_padding = 0
+			style.right_padding = 0
+			style.bottom_padding = 0
+			style.font = 'default-small-bold'
+
+			-- I can't find how to remove a child gui element
+			-- destroy() doesn't work because "Any LuaGuiElement objects referring to the destroyed elements
+			-- become invalid after this operation"
+			-- so use a variable to keep track whether tas run is still going
+			-- is tas run has ended we don't display the stop button anymore
+			tas_run_stopped = false
+			local stop_button = 
+				player.gui.top.add {
+				type = 'button',
+				name = "tas_debug_gui_stop",
+				caption = 'S',
+			}
+			local style = stop_button.style
+			style.width = 18
+			style.height = 18
+			style.left_padding = 0
+			style.top_padding = 0
+			style.right_padding = 0
+			style.bottom_padding = 0
+			style.font = 'default-small-bold'
+
+			local b =
+				player.gui.top.add {
+				type = 'button',
+				name = "tas_debug_gui_toggle",
+				caption = '<',
+			}
+			local style = b.style
+			style.width = 18
+			style.height = 18
+			style.left_padding = 0
+			style.top_padding = 0
+			style.right_padding = 0
+			style.bottom_padding = 0
+			style.font = 'default-small-bold'
+			-- make gui invisible depending on mod settings
+			if settings.global["tas-gui-debug"].value == "closed" then
+				t.visible = false
+				p.visible = false
+				s.visible = false
+				pause_button.visible = false
+				stop_button.visible = false
+				b.caption = ">"
+			end
+		end
+    end
+)
+
+script.on_event(
+	defines.events.on_gui_click,
+	function(event)
+		if event.element.name == "tas_debug_gui_toggle" then
+			local button = event.element
+			local player = game.players[event.player_index]
+			local pos = player.position
+			local top = player.gui.top
+
+			if button.caption == '<' then
+				-- close gui
+				-- idk what is children[1]; last child is toggle button, which shouldn't be disabled
+				for i = 2, #top.children - 1 do
+					top.children[i].visible = false
+				end
+				button.caption = '>'
+			else
+				-- open gui
+				for i = 2, #top.children - 1 do
+					top.children[i].visible = true
+					if top.children[i].name == "tas_debug_gui_stop" and tas_run_stopped then
+						top.children[i].visible = false
+					end
+				end
+				button.caption = '<'
+			end
+		elseif event.element.name == "tas_debug_gui_pause" then
+			game.tick_paused = not game.tick_paused
+		elseif event.element.name == "tas_debug_gui_stop" then
+			-- artificially end tas run by changing state
+			state = #task + 1
+			game.speed = 1
+			-- pause the game
+			-- TODO: add mod setting to change this behaviour?
+			game.tick_paused = true
+			-- and remove the stop button
+			-- TODO: should we?
+			tas_run_stopped = true
+			event.element.visible = false
+		end
+    end
+)
 
 -- Main per-tick event handler
 script.on_event(defines.events.on_tick, function(event)
 	local p = game.players[1]
 	local pos = p.position
-	local g = p.gui
+	local top = p.gui.top
+
+	-- update debug gui every tick
+	if settings.global["tas-gui-debug"].value ~= "disabled" then
+		top.children[2].caption = event.tick
+		top.children[3].caption = string.format("(%.2f, %.2f)", pos.x, pos.y)
+		if task[state] ~= nil then
+			top.children[4].caption = string.format("%d %s", state, task[state][1])
+		else
+			top.children[4].caption = ""
+		end
+	end
+
+	-- set gamespeed to default, stopping fastfowarding, if we reach target state
+	if state == settings.global["tas-target-task"].value then
+		game.speed = settings.global["tas-default-speed"].value
+	end
 
 	if task[state] == nil or task[state][1] == "break" then
+		-- if tas run has naturally ended, remove the stop button in debug gui
+		-- TODO: do we need to reset game speed here?
+		for i, item in ipairs(top.children)  do
+			if item.name == "tas_debug_gui_stop" then
+				tas_run_stopped = true
+				item.visible = false
+			end
+		end
 		debug(p, string.format("(%.2f, %.2f) Complete after %f seconds (%d ticks)", pos.x, pos.y, p.online_time / 60, p.online_time))		
-		dbg = 0
 		return
 	else
-		debug(p, string.format("(%.2f, %.2f, %d) %d %s", pos.x, pos.y, event.tick, state, task[state][1]))
+		-- obsolete, now we use gui instead
+		--debug(p, string.format("(%.2f, %.2f, %d) %d %s", pos.x, pos.y, event.tick, state, task[state][1]))
 		--if state == 1 then			
 		--	printGui(p, g, "")
 			-- In the introduction I need to click the initial "Continue" button to progress.

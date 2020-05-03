@@ -1,7 +1,8 @@
 local task = {}
 
 task[1] = {"move", {0.0,0.0}}
-task[2] = {"speed", 1}
+--task[2] = {"speed", settings.global["tas-max-speed"].value}
+task[2] = {"move", {0.0,0.0}}
 task[3] = {"craft", 3, "iron-gear-wheel"}
 task[4] = {"idle", 1}
 task[5] = {"walk", {6.6,75.8}}
