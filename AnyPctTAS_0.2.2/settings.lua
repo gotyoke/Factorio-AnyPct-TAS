@@ -8,7 +8,7 @@ data:extend({{
         name = "tas-gui-debug",
         setting_type = "runtime-global",
         default_value = "disabled",
-        allowed_values = {"open", "close", "disabled"}
+        allowed_values = {"open", "closed", "disabled"}
     }, {
         type = "int-setting",
         name = "tas-target-task",

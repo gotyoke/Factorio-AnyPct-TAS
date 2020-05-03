@@ -520,36 +520,37 @@ script.on_event(
         local player = game.players[event.player_index]
 		local pos = player.position
 
-		-- this and button style is copied from redmew
+		-- this guard and button style is copied from redmew
         if not player or not player.valid then
             return
         end
 		
+		-- create tas debug gui if it is not disabled
 		if settings.global["tas-gui-debug"].value ~= "disabled" then
 			local t = 
 				player.gui.top.add {
 				type = 'label',
 				name = "tas_debug_gui_time",
-				caption = ""
+				caption = "0"
 			}
 			local p = 
 				player.gui.top.add {
 				type = 'label',
 				name = "tas_debug_gui_pos",
-				caption = ""
+				caption = string.format("(%.2f, %.2f)", 0.0, 0.0)
 			}
 			local s = 
 				player.gui.top.add {
 				type = 'label',
 				name = "tas_debug_gui_state",
-				caption = ""
+				caption = string.format("%d %s", 1, task[1][1])
 			}
 
 			local b =
 				player.gui.top.add {
 				type = 'button',
 				name = "tas_debug_gui_toggle",
-				caption = '>',
+				caption = '<',
 			}
 			local style = b.style
 			style.width = 18
@@ -559,12 +560,12 @@ script.on_event(
 			style.right_padding = 0
 			style.bottom_padding = 0
 			style.font = 'default-small-bold'
-			-- start with gui open
-			if settings.global["tas-gui-debug"].value == "open" then
-				t.caption = "0"
-				p.caption = string.format("(%.2f, %.2f)", 0.0, 0.0)
-				s.caption = string.format("%d %s", 1, task[1][1])
-				b.caption = "<"
+			-- make gui invisible depending on mod settings
+			if settings.global["tas-gui-debug"].value == "closed" then
+				t.visible = false
+				p.visible = false
+				s.visible = false
+				b.caption = ">"
 			end
 		end
     end
@@ -580,15 +581,17 @@ script.on_event(
 			local top = player.gui.top
 
 			if button.caption == '<' then
-				-- closes debug info by displaying nothing
-				top.children[2].caption = ""
-				top.children[3].caption = ""
-				top.children[4].caption = ""
+				-- close gui
+				-- idk what is children[1]; last child is toggle button, which shouldn't be disabled
+				for i = 2, #top.children - 1 do
+					top.children[i].visible = false
+				end
 				button.caption = '>'
 			else
-				top.children[2].caption = event.tick
-				top.children[3].caption = string.format("(%.2f, %.2f)", pos.x, pos.y)
-				top.children[4].caption = string.format("%d %s", state, task[state][1])
+				-- open gui
+				for i = 2, #top.children - 1 do
+					top.children[i].visible = true
+				end
 				button.caption = '<'
 			end
 		end
@@ -603,11 +606,9 @@ script.on_event(defines.events.on_tick, function(event)
 
 	-- update debug gui every tick
 	if settings.global["tas-gui-debug"].value ~= "disabled" then
-		if top.children[5].caption == "<" then
-			top.children[2].caption = event.tick
-			top.children[3].caption = string.format("(%.2f, %.2f)", pos.x, pos.y)
-			top.children[4].caption = string.format("%d %s", state, task[state][1])
-		end
+		top.children[2].caption = event.tick
+		top.children[3].caption = string.format("(%.2f, %.2f)", pos.x, pos.y)
+		top.children[4].caption = string.format("%d %s", state, task[state][1])
 	end
 
 	-- set gamespeed to default, stopping fastfowarding, if we reach target state
