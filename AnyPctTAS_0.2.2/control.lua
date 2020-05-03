@@ -561,6 +561,28 @@ script.on_event(
 			style.right_padding = 0
 			style.bottom_padding = 0
 			style.font = 'default-small-bold'
+
+			-- I can't find how to remove a child gui element
+			-- destroy() doesn't work because "Any LuaGuiElement objects referring to the destroyed elements
+			-- become invalid after this operation"
+			-- so use a variable to keep track whether tas run is still going
+			-- is tas run has ended we don't display the stop button anymore
+			tas_run_stopped = false
+			local stop_button = 
+				player.gui.top.add {
+				type = 'button',
+				name = "tas_debug_gui_stop",
+				caption = 'S',
+			}
+			local style = stop_button.style
+			style.width = 18
+			style.height = 18
+			style.left_padding = 0
+			style.top_padding = 0
+			style.right_padding = 0
+			style.bottom_padding = 0
+			style.font = 'default-small-bold'
+
 			local b =
 				player.gui.top.add {
 				type = 'button',
@@ -581,6 +603,7 @@ script.on_event(
 				p.visible = false
 				s.visible = false
 				pause_button.visible = false
+				stop_button.visible = false
 				b.caption = ">"
 			end
 		end
@@ -607,11 +630,25 @@ script.on_event(
 				-- open gui
 				for i = 2, #top.children - 1 do
 					top.children[i].visible = true
+					if top.children[i].name == "tas_debug_gui_stop" and tas_run_stopped then
+						top.children[i].visible = false
+					end
 				end
 				button.caption = '<'
 			end
 		elseif event.element.name == "tas_debug_gui_pause" then
 			game.tick_paused = not game.tick_paused
+		elseif event.element.name == "tas_debug_gui_stop" then
+			-- artificially end tas run by changing state
+			state = #task + 1
+			game.speed = 1
+			-- pause the game
+			-- TODO: add mod setting to change this behaviour?
+			game.tick_paused = true
+			-- and remove the stop button
+			-- TODO: should we?
+			tas_run_stopped = true
+			event.element.visible = false
 		end
     end
 )
@@ -639,6 +676,14 @@ script.on_event(defines.events.on_tick, function(event)
 	end
 
 	if task[state] == nil or task[state][1] == "break" then
+		-- if tas run has naturally ended, remove the stop button in debug gui
+		-- TODO: do we need to reset game speed here?
+		for i, item in ipairs(top.children)  do
+			if item.name == "tas_debug_gui_stop" then
+				tas_run_stopped = true
+				item.visible = false
+			end
+		end
 		debug(p, string.format("(%.2f, %.2f) Complete after %f seconds (%d ticks)", pos.x, pos.y, p.online_time / 60, p.online_time))		
 		return
 	else
